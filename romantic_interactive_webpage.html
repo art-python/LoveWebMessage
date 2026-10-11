@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Special Message for You 💖</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous">
+    
+    <!-- JSZip Library CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+    <script>
+        // Global function defined early in <head> to handle initial image load errors safely
+        function showFallbackAvatar() {
+            const img = document.getElementById('char-img');
+            const fallback = document.getElementById('char-svg-fallback');
+            if (img) img.classList.add('hidden');
+            if (fallback) fallback.classList.remove('hidden');
+        }
+
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        burgundy: '#140105',
+                        deepCrimson: '#2A0812',
+                        velvet: '#4A0817',
+                        roseGold: '#E8C39E',
+                        deepRose: '#9E1B32',
+                        brightRose: '#FF2E63',
+                        softPink: '#FFE5EC'
+                    },
+                    fontFamily: {
+                        cursive: ['"Great Vibes"', 'cursive'],
+                        serif: ['"Playfair Display"', 'serif'],
+                        sans: ['"Poppins"', 'sans-serif']
+                    },
+                    aspectRatio: {
+                        'character': '572 / 1024'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        * {
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: radial-gradient(circle at 50% 20%, #2A0812 0%, #140105 60%, #080003 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            font-family: 'Poppins', sans-serif;
+            color: #FFE5EC;
+        }
+
+        /* Fluid Glassmorphism Styles */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(232, 195, 158, 0.25);
+            box-shadow: 0 16px 40px 0 rgba(0, 0, 0, 0.45);
+            transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.3s ease, border-color 0.3s ease;
+        }
+
+        .glass-card-dark {
+            background: rgba(20, 1, 5, 0.88);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 46, 99, 0.35);
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.7);
+        }
+
+        /* Glowing Effects & Smooth Micro-Interactions */
+        .glow-button {
+            box-shadow: 0 4px 20px rgba(255, 46, 99, 0.25);
+            transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .glow-button:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 8px 28px rgba(255, 46, 99, 0.45);
+        }
+
+        .glow-button:active {
+            transform: translateY(1px) scale(0.96);
+            box-shadow: 0 2px 12px rgba(255, 46, 99, 0.6);
+        }
+
+        #particle-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 40;
+        }
+
+        @keyframes pulseHeart {
+            0% { transform: scale(1); }
+            20% { transform: scale(1.18); }
+            40% { transform: scale(1); }
+            60% { transform: scale(1.14); }
+            100% { transform: scale(1); }
+        }
+
+        .heart-beat {
+            animation: pulseHeart 1.8s infinite ease-in-out;
+        }
+
+        @keyframes ambientFloat {
+            0% { transform: translate(0px, 0px) scale(1); }
+            50% { transform: translate(15px, -20px) scale(1.08); }
+            100% { transform: translate(0px, 0px) scale(1); }
+        }
+
+        .ambient-glow {
+            animation: ambientFloat 8s infinite ease-in-out;
+        }
+
+        .drag-over {
+            border-color: #FF2E63 !important;
+            background: rgba(255, 46, 99, 0.2) !important;
+            transform: scale(1.02);
+        }
+
+        /* Responsive Frame Constraints for 572x1024 Aspect Ratio */
+        .character-frame-container {
+            width: 100%;
+            max-width: 360px;
+            aspect-ratio: 572 / 1024;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 380px) {
+            .character-frame-container {
+                max-width: 310px;
+            }
+        }
+
+        /* Soundwave Animation Bars */
+        .wave-bar {
+            width: 3px;
+            height: 12px;
+            background-color: #FF2E63;
+            border-radius: 2px;
+            animation: soundWave 0.8s infinite ease-in-out alternate;
+        }
+
+        .wave-bar:nth-child(1) { animation-delay: 0.1s; }
+        .wave-bar:nth-child(2) { animation-delay: 0.3s; }
+        .wave-bar:nth-child(3) { animation-delay: 0.2s; }
+        .wave-bar:nth-child(4) { animation-delay: 0.4s; }
+
+        @keyframes soundWave {
+            0% { height: 4px; }
+            100% { height: 16px; }
+        }
+
+        .wave-paused .wave-bar {
+            animation-play-state: paused;
+            height: 4px !important;
+        }
+
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: rgba(20, 1, 5, 0.9); }
+        ::-webkit-scrollbar-thumb { background: #9E1B32; border-radius: 4px; }
+    </style>
+</head>
+<body class="relative flex flex-col items-center justify-start min-h-screen pb-64 sm:pb-72 px-3 sm:px-6">
+
+    <canvas id="particle-canvas"></canvas>
+
+    <!-- Floating Quick Music ON/OFF & Volume Control Widget -->
+    <div id="floating-music-control" class="fixed top-3 right-3 z-40 flex items-center space-x-2 bg-velvet/90 backdrop-blur-md p-1.5 px-2.5 rounded-full border border-roseGold/40 shadow-2xl text-roseGold transition-all duration-300">
+        <button onclick="toggleAudio()" id="float-music-btn" class="w-8 h-8 rounded-full bg-brightRose/30 hover:bg-brightRose/50 flex items-center justify-center text-xs transition-all glow-button" title="Toggle Music Play/Pause">
+            <i id="float-music-icon" class="fa-solid fa-music"></i>
+        </button>
+        <div class="flex items-center space-x-1.5 pl-1 border-l border-roseGold/20">
+            <button onclick="toggleMute()" class="focus:outline-none">
+                <i id="volume-icon" class="fa-solid fa-volume-high text-xs hover:text-brightRose transition-colors"></i>
+            </button>
+            <input type="range" id="volume-slider" min="0" max="1" step="0.05" value="1" oninput="changeVolume(this.value)" class="w-14 sm:w-16 accent-brightRose h-1 bg-black/60 rounded-lg cursor-pointer">
+        </div>
+    </div>
+
+    <!-- Background Ambient Animated Glows -->
+    <div class="fixed top-10 left-1/2 -translate-x-1/2 w-80 h-80 bg-brightRose/15 rounded-full blur-3xl pointer-events-none ambient-glow"></div>
+    <div class="fixed bottom-10 right-10 w-96 h-96 bg-deepRose/20 rounded-full blur-3xl pointer-events-none ambient-glow" style="animation-delay: -4s;"></div>
+
+    <!-- Hidden Audio Element -->
+    <audio id="secret-audio" preload="auto"></audio>
+
+    <!-- Header Section -->
+    <header class="w-full max-w-md text-center mt-4 mb-2 relative z-10 flex flex-col items-center">
+        <div class="flex items-center justify-between w-full mb-2">
+            <div class="inline-flex items-center space-x-2 bg-velvet/80 backdrop-blur-md px-3 py-1 rounded-full border border-roseGold/30 text-roseGold text-[11px] font-semibold uppercase tracking-wider shadow-md">
+                <i class="fa-solid fa-sparkles text-brightRose"></i>
+                <span>Find me here jebe bhi mote miss kariba</span>
+            </div>
+            
+            <button onclick="openZipModal()" class="inline-flex items-center space-x-1.5 bg-brightRose/20 hover:bg-brightRose/30 border border-brightRose/50 text-roseGold text-xs px-3 py-1 rounded-full transition-all glow-button">
+                <i class="fa-solid fa-box-open text-brightRose"></i>
+                <span>Upload ZIP</span>
+            </button>
+        </div>
+
+        <h1 class="font-cursive text-4xl sm:text-5xl text-transparent bg-clip-text bg-gradient-to-r from-roseGold via-softPink to-roseGold drop-shadow-md">
+            For my "Lucky" Charm!
+        </h1>
+        <p class="text-[11px] text-softPink/80 mt-0.5 font-light tracking-wide">
+            Tap the buttons below to interact with him ✨
+        </p>
+    </header>
+
+    <!-- ZIP Extraction Modal Popup -->
+    <div id="zip-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 transition-all duration-500 opacity-100">
+        <div class="w-full max-w-md glass-card-dark rounded-3xl p-5 border-2 border-roseGold/40 shadow-2xl relative overflow-hidden flex flex-col items-center text-center transform scale-100 transition-all duration-300">
+            
+            <div class="absolute -top-3 -left-3 text-3xl pointer-events-none transform -rotate-45">💌</div>
+            <div class="absolute -top-3 -right-3 text-3xl pointer-events-none transform rotate-45">💌</div>
+
+            <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-brightRose to-deepRose flex items-center justify-center text-white text-2xl shadow-lg mb-3 glow-button">
+                <i class="fa-solid fa-file-zipper"></i>
+            </div>
+
+            <h2 class="text-xl font-serif text-roseGold font-bold mb-1">Load Assets Archive</h2>
+            <p class="text-xs text-softPink/80 mb-4 px-2">
+                Upload the shared ZIP file! <br> Please don't skip. Upload Kariba bhulibani.. bujhila Paglu! 
+            </p>
+
+            <!-- Drag & Drop Upload Zone -->
+            <div id="drop-zone" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)" onclick="document.getElementById('zip-file-input').click()" class="w-full p-4 border-2 border-dashed border-roseGold/40 hover:border-brightRose rounded-2xl bg-velvet/40 cursor-pointer transition-all duration-300 group flex flex-col items-center mb-4">
+                <i class="fa-solid fa-cloud-arrow-up text-3xl text-brightRose mb-1.5 transform group-hover:scale-110 transition-transform"></i>
+                <span class="text-xs font-semibold text-roseGold">Tap or Drag .ZIP File Here</span>
+                <input type="file" id="zip-file-input" accept=".zip" onchange="handleZipSelect(event)" class="hidden">
+            </div>
+
+            <!-- Progress Bar -->
+            <div id="extraction-status-container" class="w-full space-y-1.5 mb-4 hidden">
+                <div class="flex justify-between items-center text-xs">
+                    <span id="status-title" class="text-roseGold font-medium">Extracting files...</span>
+                    <span id="status-percent" class="text-brightRose font-mono">0%</span>
+                </div>
+                <div class="w-full bg-black/50 h-2 rounded-full overflow-hidden border border-roseGold/20">
+                    <div id="status-bar" class="bg-gradient-to-r from-brightRose to-roseGold h-full w-0 transition-all duration-300"></div>
+                </div>
+                <p id="status-log" class="text-[10px] text-softPink/70 truncate text-left font-mono">Loading archive...</p>
+            </div>
+
+            <div class="w-full space-y-2">
+                <button onclick="closeZipModal()" class="w-full bg-gradient-to-r from-brightRose to-deepRose text-white font-medium py-2.5 rounded-2xl shadow-lg glow-button text-xs uppercase tracking-wider">
+                    Enter the Special Webpage for You 💕
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <main class="w-full max-w-md relative z-10 flex flex-col items-center">
+        
+        <!-- Character Container - Strictly Constrained to 572x1024 Aspect Ratio -->
+        <div class="character-frame-container relative glass-card-dark rounded-3xl p-2.5 sm:p-3 border-2 border-roseGold/40 shadow-2xl my-2">
+            
+            <!-- Floral Corner Decorations -->
+            <div class="absolute -top-3 -left-3 text-3xl pointer-events-none transform -rotate-45 filter drop-shadow-md z-20">❤️</div>
+            <div class="absolute -top-3 -right-3 text-3xl pointer-events-none transform rotate-45 filter drop-shadow-md z-20">❤️</div>
+            <div class="absolute -bottom-3 -left-3 text-3xl pointer-events-none transform -rotate-135 filter drop-shadow-md z-20">🌹</div>
+            <div class="absolute -bottom-3 -right-3 text-3xl pointer-events-none transform rotate-135 filter drop-shadow-md z-20">🌹</div>
+
+            <div id="avatar-stage" class="relative w-full h-full rounded-2xl overflow-hidden bg-gradient-to-b from-velvet to-burgundy flex items-center justify-center border border-roseGold/20 shadow-inner group cursor-pointer" onclick="triggerEmotion('hug')">
+                
+                <!-- 1. Default Landing Video Player (animation.mp4) - Autoplays seamlessly -->
+                <video id="char-video" class="w-full h-full object-cover rounded-2xl transition-all duration-500" playsinline autoplay loop muted>
+                    <source id="video-source" src="animation.mp4" type="video/mp4">
+                </video>
+
+                <!-- 2. Static Character Image Fallback -->
+                <img id="char-img" src="character.jpg" onerror="showFallbackAvatar()" alt="Character" class="w-full h-full object-cover rounded-2xl transition-transform duration-500 group-hover:scale-105 hidden">
+
+                <!-- 3. Fallback Styled SVG Avatar if image not provided -->
+                <div id="char-svg-fallback" class="w-full h-full flex flex-col items-center justify-center p-4 bg-gradient-to-b from-[#3B0713] via-[#24030A] to-[#120005] hidden">
+                    <svg viewBox="0 0 300 536" class="w-full h-full filter drop-shadow-2xl">
+                        <ellipse cx="150" cy="500" rx="100" ry="20" fill="#E8C39E" opacity="0.2"/>
+                        <path d="M 80 500 L 95 320 Q 150 290 205 320 L 220 500 Z" fill="#9E1B32" />
+                        <rect x="135" y="240" width="30" height="45" rx="8" fill="#E8C39E"/>
+                        <ellipse cx="150" cy="190" rx="48" ry="56" fill="#E8C39E"/>
+                        <circle cx="131" cy="180" r="5" fill="#1A0005"/>
+                        <circle cx="169" cy="180" r="5" fill="#1A0005"/>
+                        <path d="M 135 210 Q 150 225 165 210" fill="none" stroke="#1A0005" stroke-width="3" stroke-linecap="round"/>
+                        <path d="M 150 95 Q 150 85 142 85 Q 135 85 135 92 Q 135 102 150 110 Q 165 102 165 92 Q 165 85 158 85 Q 150 85 150 95 Z" fill="#FF2E63" class="heart-beat"/>
+                    </svg>
+                </div>
+
+                <!-- Emotion Badge Overlay -->
+                <div class="absolute top-3 right-3 bg-velvet/90 border border-roseGold/40 text-roseGold px-3 py-1 rounded-full text-[11px] flex items-center space-x-1.5 shadow-lg backdrop-blur-md z-20">
+                    <i class="fa-solid fa-heart text-brightRose heart-beat"></i>
+                    <span id="mood-label" class="font-medium">Waiting For You</span>
+                </div>
+
+                <!-- Popup Quote Notification Overlay -->
+                <div id="action-popup" class="absolute bottom-3 left-3 right-3 glass-card rounded-xl p-3 text-center transform translate-y-10 opacity-0 transition-all duration-500 ease-out border border-brightRose/40 pointer-events-none z-20">
+                    <p id="action-popup-text" class="text-xs sm:text-sm text-softPink font-medium leading-relaxed">
+                        "Tap an emotion button below to see me react!"
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Emotion Action Buttons Grid -->
+        <div class="w-full space-y-2 mt-2">
+            <!-- First Row: hug, Laugh, Kiss -->
+            <div class="grid grid-cols-3 gap-2">
+                <button onclick="triggerEmotion('hug')" class="glow-button glass-card hover:bg-brightRose/20 border-roseGold/30 p-2.5 rounded-2xl flex flex-col items-center text-center transition-all active:scale-95">
+                    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-brightRose to-deepRose flex items-center justify-center text-white text-base shadow-md mb-1">🤗</div>
+                    <span class="text-[11px] text-roseGold font-semibold">I need a Hug</span>
+                </button>
+
+                <button onclick="triggerEmotion('laugh')" class="glow-button glass-card hover:bg-brightRose/20 border-roseGold/30 p-2.5 rounded-2xl flex flex-col items-center text-center transition-all active:scale-95">
+                    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500 to-brightRose flex items-center justify-center text-white text-base shadow-md mb-1">😂</div>
+                    <span class="text-[11px] text-roseGold font-semibold">Make me Laugh</span>
+                </button>
+
+                <button onclick="triggerEmotion('kiss')" class="glow-button glass-card hover:bg-brightRose/20 border-roseGold/30 p-2.5 rounded-2xl flex flex-col items-center text-center transition-all active:scale-95">
+                    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-pink-500 to-brightRose flex items-center justify-center text-white text-base shadow-md mb-1">💋</div>
+                    <span class="text-[11px] text-roseGold font-semibold">Kiss Me</span>
+                </button>
+            </div>
+
+            <!-- Second Row: Playtime & Say You Love Me (Propose) -->
+            <div class="grid grid-cols-2 gap-2">
+                <button onclick="triggerEmotion('play')" class="glow-button glass-card hover:bg-brightRose/20 border-roseGold/30 p-2.5 rounded-2xl flex items-center justify-center space-x-2.5 transition-all active:scale-95">
+                    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-roseGold to-brightRose flex items-center justify-center text-white text-base shadow-md">✨</div>
+                    <div class="text-left">
+                        <div class="text-[11px] text-roseGold font-semibold">Let's Dance</div>
+                    </div>
+                </button>
+
+                <button onclick="triggerEmotion('propose')" class="glow-button bg-gradient-to-r from-brightRose/30 to-deepRose/40 border border-brightRose p-2.5 rounded-2xl flex items-center justify-center space-x-2.5 transition-all active:scale-95 shadow-lg">
+                    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-brightRose to-roseGold flex items-center justify-center text-white text-base shadow-md heart-beat">🌹</div>
+                    <div class="text-left">
+                        <div class="text-[11px] text-roseGold font-bold uppercase tracking-wider">Do You Love Me?</div>
+                        <div class="text-[9px] text-softPink/90">I need an answer</div>
+                    </div>
+                </button>
+            </div>
+        </div>
+
+        <!-- Dialogue Box -->
+        <div id="dialogue-box" class="w-full glass-card rounded-2xl p-3.5 mt-3 border border-roseGold/30 relative overflow-hidden transition-all duration-300">
+            <div class="flex items-start space-x-3">
+                <div class="text-2xl" id="dialogue-icon">💌</div>
+                <div class="flex-1">
+                    <h3 class="text-[11px] font-bold text-roseGold uppercase tracking-wider" id="dialogue-title">Sweet Note</h3>
+                    <p class="text-xs text-softPink mt-0.5 leading-relaxed font-light transition-opacity duration-300" id="dialogue-text">
+                        "Tap any button above to interact with me. Tume mote nija pakhe re hi paiba!"
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Call & WhatsApp Action Buttons -->
+        <div class="w-full grid grid-cols-2 gap-2.5 mt-4 mb-8 z-20 relative">
+            <a href="tel:+919506234761" class="glow-button bg-gradient-to-r from-emerald-600 to-teal-700 text-white p-3 rounded-2xl flex items-center justify-center space-x-2 shadow-lg hover:brightness-110 active:scale-95 border border-emerald-400/40 transition-all">
+                <i class="fa-solid fa-phone text-sm"></i>
+                <span class="text-xs font-semibold tracking-wide">Call Me</span>
+            </a>
+            <a href="https://wa.me/919506234761?text=Hey%20sweetheart!%20I%20miss%20you%20💖" target="_blank" rel="noopener noreferrer" class="glow-button bg-gradient-to-r from-green-500 to-emerald-600 text-white p-3 rounded-2xl flex items-center justify-center space-x-2 shadow-lg hover:brightness-110 active:scale-95 border border-green-300/40 transition-all">
+                <i class="fa-brands fa-whatsapp text-base"></i>
+                <span class="text-xs font-semibold tracking-wide">WhatsApp Me</span>
+            </a>
+        </div>
+    </main>
+
+    <!-- Expanded Secret Playlist Audio Player Floating Bottom Bar (Collapsible to prevent blocking buttons) -->
+    <div id="audio-toast" class="fixed bottom-3 left-2 right-2 max-w-md mx-auto glass-card-dark rounded-2xl p-3 border border-brightRose/50 shadow-2xl z-40 transition-all duration-500 ease-in-out">
+        
+        <!-- Top Track Info & Controls Header -->
+        <div class="flex items-center justify-between mb-1">
+            <div class="flex items-center space-x-3 min-w-0 pr-2">
+                <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-brightRose to-deepRose flex items-center justify-center text-white text-xs flex-shrink-0 shadow-md">
+                    <i id="music-disc-icon" class="fa-solid fa-compact-disc"></i>
+                </div>
+                <div class="min-w-0">
+                    <div class="flex items-center space-x-2">
+                        <p class="text-[10px] text-roseGold font-semibold uppercase tracking-wider">Special Playlist</p>
+                        <span id="track-count-badge" class="bg-brightRose/30 text-roseGold text-[9px] px-1.5 py-0.2 rounded-full font-mono">Track 1 of 1</span>
+                    </div>
+                    <p id="audio-toast-title" class="text-xs text-softPink font-medium truncate">My special message for you</p>
+                </div>
+            </div>
+
+            <!-- Wavebar Visualizer, Drawer & Minimize Toggle Buttons -->
+            <div class="flex items-center space-x-1.5 flex-shrink-0">
+                <div id="soundwave-box" class="flex items-center space-x-1 px-1.5 py-1 bg-black/40 rounded-lg border border-brightRose/20 wave-paused">
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                </div>
+
+                <button onclick="togglePlaylistDrawer()" class="w-7 h-7 rounded-full bg-roseGold/20 hover:bg-roseGold/30 border border-roseGold/40 text-roseGold flex items-center justify-center text-xs transition-all" title="View Songs List">
+                    <i class="fa-solid fa-list-ul"></i>
+                </button>
+
+                <!-- Minimize / Expand Toggle Button -->
+                <button onclick="togglePlayerMinimize()" id="minimize-player-btn" class="w-7 h-7 rounded-full bg-brightRose/20 hover:bg-brightRose/40 border border-brightRose/50 text-roseGold flex items-center justify-center text-xs transition-all" title="Minimize/Expand Player">
+                    <i id="minimize-player-icon" class="fa-solid fa-chevron-down"></i>
+                </button>
+            </div>
+        </div>
+
+        <div id="player-collapsible-body" class="transition-all duration-300">
+            <!-- Scrubbable Progress Bar -->
+            <div class="w-full space-y-1 my-1.5">
+                <input type="range" id="seek-bar" value="0" min="0" max="100" oninput="seekTrack(this.value)" class="w-full accent-brightRose h-1 bg-black/50 rounded-lg cursor-pointer">
+                <div class="flex justify-between items-center text-[9px] text-softPink/60 font-mono">
+                    <span id="curr-time">0:00</span>
+                    <span id="dur-time">0:00</span>
+                </div>
+            </div>
+
+            <!-- Full Audio Control Bar (Previous, Play/Pause, Next, Shuffle, Loop) -->
+            <div class="flex items-center justify-between pt-1 border-t border-roseGold/10">
+                <div class="flex items-center space-x-2">
+                    <button onclick="toggleShuffle()" id="shuffle-btn" class="text-softPink/50 hover:text-brightRose text-xs transition-all" title="Shuffle">
+                        <i class="fa-solid fa-shuffle"></i>
+                    </button>
+                    <button onclick="toggleRepeat()" id="repeat-btn" class="text-softPink/50 hover:text-brightRose text-xs transition-all" title="Repeat All">
+                        <i id="repeat-icon" class="fa-solid fa-repeat"></i>
+                    </button>
+                </div>
+
+                <!-- Main Playback Actions -->
+                <div class="flex items-center space-x-3">
+                    <button onclick="prevTrack()" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-softPink flex items-center justify-center text-xs transition-all">
+                        <i class="fa-solid fa-backward-step"></i>
+                    </button>
+
+                    <button onclick="toggleAudio()" id="toast-play-btn" class="w-8 h-8 rounded-full bg-gradient-to-tr from-brightRose to-deepRose text-white flex items-center justify-center text-xs shadow-lg transition-all glow-button">
+                        <i id="toast-play-icon" class="fa-solid fa-play ml-0.5"></i>
+                    </button>
+
+                    <button onclick="nextTrack()" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-softPink flex items-center justify-center text-xs transition-all">
+                        <i class="fa-solid fa-forward-step"></i>
+                    </button>
+                </div>
+
+                <button onclick="togglePlaylistDrawer()" class="text-softPink/40 hover:text-softPink/80 text-xs transition-all" title="Songs List">
+                    <i class="fa-solid fa-music"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Expandable Playlist Drawer -->
+        <div id="playlist-drawer" class="mt-2 border-t border-roseGold/20 pt-2 hidden max-h-36 overflow-y-auto space-y-1 pr-1">
+            <p class="text-[10px] text-roseGold/80 uppercase tracking-wider font-semibold mb-1">Extracted Songs Sequence</p>
+            <div id="playlist-items" class="space-y-1">
+                <!-- Dynamically populated playlist items -->
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Logic & Canvas Physics -->
+    <script>
+        // Extracted Assets Memory Store
+        const loadedAssets = {
+            image: null,
+            hug: null,
+            laugh: null,
+            kiss: null,
+            play: null,
+            propose: null
+        };
+
+        // Sequential Playlist Management State
+        let playlist = [
+            { name: "Kebe Aasi Tu_2.mp3", url: "Kebe Aasi Tu_2.mp3" }
+        ];
+        let currentTrackIndex = 0;
+        let isShuffle = false;
+        let repeatMode = 'all'; // 'all', 'one', 'none'
+        let isPlayerMinimized = false;
+
+        // Dialogue Quotes for Reactions
+        const emotionDialogues = {
+            hug: [
+                "Offo! ete stress kain neucha. aasa gote hug deuchi sabu stress bhuli jiba. 🤗",
+                "Dura thile kana hela, paakha heba ra kete bata. 🥰",
+                "Tume pakha na thai ki bhi pakha acha. ❤️",
+                "Come here! I have the warmest, sweetest hugs in the world. bujhila paglu!🫂"
+            ],
+            laugh: [
+                "Mai soch rha tha tumhare liye chaand taare tod kar launga, mummy ne aata laane bhej diya! 😝😂",
+                "Why I feel lucky is fan of Daler Mehendi? bcaz lucky replies to every thing with.. na! na!.. na na na re na re.. 😝"
+            ],
+            kiss: [
+                "Sending you a million soft kisses across the miles! 💋",
+                "Every kiss from you feels like magic in my heart."
+            ],
+            play: [
+                "Dance time! Tume sange re thile aame emiti hi dance kari thantu 😇🥰!",
+                "Arey madam ete laja kana pain! chala tike sange re dance kariba 💃🏻🕺🏻."
+            ],
+            propose: [
+                "I love you more than words could ever explain. You are my forever and always. 🌹💖",
+                "With every beat of my heart, I choose you, today and every day!"
+            ]
+        };
+
+        // ---------------- 1. Canvas 3D Floating Hearts, Petals & Emotion Emojis ----------------
+        const canvas = document.getElementById('particle-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        // Exact Emotion Emoji Sets for Floating Canvas Bursts
+        const emotionEmojiSets = {
+            hug: ['🤗', '🫂', '💖', '🥰', '💕', '❤️'],
+            laugh: ['😂', '🤣', '😆', '😜', '😝', '🤪', '🤡'],
+            kiss: ['💋', '😘', '💖', '💄', '😍', '💕', '💋'],
+            play: ['💃', '🕺', '✨', '🎶', '🥳', '🎉', '🌟'],
+            propose: ['🌹', '💍', '💖', '❤️', '💗', '👩‍❤️‍👨', '💐']
+        };
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor(type = 'heart', emoji = null) {
+                this.reset(type, emoji);
+            }
+
+            reset(type = 'heart', emoji = null) {
+                this.x = Math.random() * canvas.width;
+                this.y = canvas.height + 20;
+                this.size = Math.random() * 12 + 10;
+                this.speedY = Math.random() * 1.8 + 0.9;
+                this.speedX = (Math.random() - 0.5) * 1.5;
+                this.rotation = (Math.random() - 0.5) * 0.4;
+                this.rotSpeed = (Math.random() - 0.5) * 0.03;
+                this.opacity = Math.random() * 0.7 + 0.3;
+                this.fadeRate = 0;
+                this.scale = 1;
+                this.emoji = emoji;
+                this.type = emoji ? 'emoji' : (type || (Math.random() > 0.4 ? 'heart' : 'petal'));
+                this.isDead = false;
+            }
+
+            update() {
+                this.y -= this.speedY;
+                this.x += Math.sin(this.y * 0.015) * 1.2 + this.speedX;
+                this.rotation += this.rotSpeed;
+
+                if (this.emoji) {
+                    this.opacity -= this.fadeRate;
+                    if (this.opacity <= 0) {
+                        this.isDead = true;
+                    }
+                } else {
+                    if (this.y < -40) {
+                        this.reset();
+                    }
+                }
+            }
+
+            draw() {
+                if (this.opacity <= 0) return;
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation);
+                ctx.scale(this.scale, this.scale);
+                ctx.globalAlpha = Math.max(0, this.opacity);
+
+                if (this.type === 'emoji' && this.emoji) {
+                    ctx.font = `${Math.floor(this.size * 2.4)}px "Apple Color Emoji", "Segoe UI Emoji", sans-serif`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.shadowBlur = 14;
+                    ctx.shadowColor = 'rgba(255, 46, 99, 0.75)';
+                    ctx.fillText(this.emoji, 0, 0);
+                } else if (this.type === 'heart') {
+                    // 3D Shiny Red Heart
+                    ctx.fillStyle = '#FF2E63';
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = 'rgba(255, 46, 99, 0.6)';
+                    ctx.beginPath();
+                    const topCurveHeight = this.size * 0.3;
+                    ctx.moveTo(0, topCurveHeight);
+                    ctx.bezierCurveTo(0, 0, -this.size / 2, 0, -this.size / 2, topCurveHeight);
+                    ctx.bezierCurveTo(-this.size / 2, (this.size + topCurveHeight) / 2, 0, this.size, 0, this.size);
+                    ctx.bezierCurveTo(0, this.size, this.size / 2, (this.size + topCurveHeight) / 2, this.size / 2, topCurveHeight);
+                    ctx.bezierCurveTo(this.size / 2, 0, 0, 0, 0, topCurveHeight);
+                    ctx.closePath();
+                    ctx.fill();
+                } else {
+                    // Rose Petal Path
+                    ctx.fillStyle = '#9E1B32';
+                    ctx.shadowBlur = 6;
+                    ctx.shadowColor = 'rgba(158, 27, 50, 0.5)';
+                    ctx.beginPath();
+                    ctx.ellipse(0, 0, this.size * 0.6, this.size, Math.PI / 4, 0, 2 * Math.PI);
+                    ctx.fill();
+                }
+
+                ctx.restore();
+            }
+        }
+
+        // Initialize background heart & petal particles
+        for (let i = 0; i < 26; i++) {
+            particles.push(new Particle());
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.update();
+                p.draw();
+                if (p.isDead) {
+                    particles.splice(i, 1);
+                }
+            }
+            requestAnimationFrame(animateParticles);
+        }
+        animateParticles();
+
+        function createParticleBurst(emotion) {
+            const emojis = emotionEmojiSets[emotion] || emotionEmojiSets['hug'];
+            for (let i = 0; i < 32; i++) {
+                const selectedEmoji = emojis[Math.floor(Math.random() * emojis.length)];
+                const p = new Particle('emoji', selectedEmoji);
+                p.x = (canvas.width * 0.1) + Math.random() * (canvas.width * 0.8);
+                p.y = canvas.height * 0.65 + (Math.random() * 120);
+                p.speedY = Math.random() * 3.2 + 2.0;
+                p.speedX = (Math.random() - 0.5) * 2.5;
+                p.opacity = 1.0;
+                p.fadeRate = Math.random() * 0.007 + 0.004;
+                p.size = Math.random() * 16 + 14;
+                particles.push(p);
+            }
+        }
+
+        // ---------------- 2. ZIP Archive Extraction & Multi-Track Detection ----------------
+        function openZipModal() {
+            const modal = document.getElementById('zip-modal');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+            }, 10);
+        }
+
+        function closeZipModal() {
+            const modal = document.getElementById('zip-modal');
+            modal.classList.add('opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                startLandingVideo();
+            }, 400);
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            document.getElementById('drop-zone').classList.add('drag-over');
+        }
+
+        function handleDragLeave(e) {
+            e.preventDefault();
+            document.getElementById('drop-zone').classList.remove('drag-over');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            document.getElementById('drop-zone').classList.remove('drag-over');
+            if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                processZipFile(e.dataTransfer.files[0]);
+            }
+        }
+
+        function handleZipSelect(e) {
+            if (e.target.files && e.target.files[0]) {
+                processZipFile(e.target.files[0]);
+            }
+        }
+
+        async function processZipFile(file) {
+            if (!file.name.endsWith('.zip')) {
+                alert('Please select a valid .ZIP archive!');
+                return;
+            }
+
+            const statusContainer = document.getElementById('extraction-status-container');
+            const statusBar = document.getElementById('status-bar');
+            const statusPercent = document.getElementById('status-percent');
+            const statusLog = document.getElementById('status-log');
+            const statusTitle = document.getElementById('status-title');
+
+            statusContainer.classList.remove('hidden');
+            statusBar.style.width = '20%';
+            statusPercent.innerText = '20%';
+            statusLog.innerText = `Reading ${file.name}...`;
+
+            try {
+                const zip = new JSZip();
+                const zipContent = await zip.loadAsync(file);
+                
+                statusBar.style.width = '55%';
+                statusPercent.innerText = '55%';
+                statusLog.innerText = 'Extracting character video assets & audio...';
+
+                const zipMp3s = [];
+
+                for (let filename in zipContent.files) {
+                    const lowerName = filename.split('/').pop().toLowerCase();
+                    const rawName = filename.split('/').pop();
+
+                    if (!rawName) continue; // Skip directory entries
+
+                    // 1. Static Character Image
+                    if (lowerName === '3d-character-image.jpg' || lowerName === 'character.jpg' || lowerName.endsWith('.jpg') || lowerName.endsWith('.png')) {
+                        const blob = await zipContent.files[filename].async('blob');
+                        loadedAssets.image = URL.createObjectURL(blob);
+                        document.getElementById('char-img').src = loadedAssets.image;
+                    }
+
+                    // 2. Multi-track MP3 audio discovery
+                    if (lowerName.endsWith('.mp3')) {
+                        const blob = await zipContent.files[filename].async('blob');
+                        const mp3Url = URL.createObjectURL(blob);
+                        zipMp3s.push({
+                            name: rawName,
+                            url: mp3Url
+                        });
+                    }
+
+                    // 3. Emotion Video Animations
+                    if (lowerName === '3d-character-animation.mp4' || lowerName === 'animation.mp4') {
+                        loadedAssets.hug = URL.createObjectURL(await zipContent.files[filename].async('blob'));
+                    }
+                    if (lowerName === 'cuddle.mp4') loadedAssets.hug = URL.createObjectURL(await zipContent.files[filename].async('blob'));
+                    if (lowerName === 'laugh.mp4') loadedAssets.laugh = URL.createObjectURL(await zipContent.files[filename].async('blob'));
+                    if (lowerName === 'kiss.mp4') loadedAssets.kiss = URL.createObjectURL(await zipContent.files[filename].async('blob'));
+                    if (lowerName === 'play.mp4' || lowerName === 'dance.mp4') loadedAssets.play = URL.createObjectURL(await zipContent.files[filename].async('blob'));
+                    if (lowerName === 'propose.mp4') loadedAssets.propose = URL.createObjectURL(await zipContent.files[filename].async('blob'));
+                }
+
+                if (zipMp3s.length > 0) {
+                    playlist = zipMp3s;
+                    currentTrackIndex = 0;
+                    loadTrack(0, true);
+                }
+
+                renderPlaylistUI();
+
+                statusBar.style.width = '100%';
+                statusPercent.innerText = '100%';
+                statusTitle.innerText = `Extracted ${zipMp3s.length} Song(s)! ✨`;
+                statusLog.innerText = 'All media files & video animations ready.';
+
+                createParticleBurst('propose');
+
+                setTimeout(() => { 
+                    closeZipModal(); 
+                }, 1000);
+
+            } catch (err) {
+                console.error(err);
+                statusTitle.innerText = 'Error Extracting ZIP';
+                statusLog.innerText = 'Please ensure archive contains valid media.';
+            }
+        }
+
+        // ---------------- 3. Emotion Reactions & Video Handling ----------------
+        const charImg = document.getElementById('char-img');
+        const charVideo = document.getElementById('char-video');
+        const videoSource = document.getElementById('video-source');
+
+        function startLandingVideo() {
+            const landingVideo = loadedAssets.hug || 'animation.mp4';
+            if (videoSource) videoSource.src = landingVideo;
+            if (charVideo) {
+                charVideo.loop = true;
+                charVideo.muted = true; // Required for mobile browser autoplay policies
+                charVideo.load();
+                charVideo.play().catch(e => console.log('Autoplay deferred:', e));
+            }
+            document.getElementById('mood-label').innerText = 'Waiting For You';
+        }
+
+        function triggerEmotion(emotion) {
+            const moodLabel = document.getElementById('mood-label');
+            const popup = document.getElementById('action-popup');
+            const popupText = document.getElementById('action-popup-text');
+            const dialogueTitle = document.getElementById('dialogue-title');
+            const dialogueText = document.getElementById('dialogue-text');
+            const dialogueIcon = document.getElementById('dialogue-icon');
+
+            // Select quote for emotion
+            const quotes = emotionDialogues[emotion] || emotionDialogues['hug'];
+            const chosenQuote = quotes[Math.floor(Math.random() * quotes.length)];
+
+            moodLabel.innerText = emotion.toUpperCase();
+            dialogueTitle.innerText = emotion === 'propose' ? 'Special Love Declaration 💖' : `${emotion.toUpperCase()} Reaction`;
+            
+            // Smoothly update dialogue text
+            dialogueText.style.opacity = '0';
+            setTimeout(() => {
+                dialogueText.innerText = `"${chosenQuote}"`;
+                dialogueText.style.opacity = '1';
+            }, 150);
+            
+            const icons = { hug: '🤗', laugh: '😂', kiss: '💋', play: '✨', propose: '🌹' };
+            dialogueIcon.innerText = icons[emotion] || '💌';
+
+            // Popup notification toast animation
+            popupText.innerText = chosenQuote;
+            popup.classList.remove('opacity-0', 'translate-y-10');
+            popup.classList.add('opacity-100', 'translate-y-0');
+
+            setTimeout(() => {
+                popup.classList.remove('opacity-100', 'translate-y-0');
+                popup.classList.add('opacity-0', 'translate-y-10');
+            }, 3600);
+
+            // Trigger smooth floating emotion particles
+            createParticleBurst(emotion);
+
+            // Play video animation if loaded
+            const videoUrl = loadedAssets[emotion] || (emotion === 'hug' ? 'animation.mp4' : null);
+            
+            if (videoUrl) {
+                charVideo.loop = false; // Disable loop so ended event fires to revert back
+                videoSource.src = videoUrl;
+                charVideo.load();
+                charImg.classList.add('hidden');
+                charVideo.classList.remove('hidden');
+
+                charVideo.play().catch(() => {
+                    revertToDefaultAnimation();
+                });
+            } else {
+                // Pulse feedback if video URL isn't present
+                charVideo.classList.add('scale-105');
+                setTimeout(() => charVideo.classList.remove('scale-105'), 600);
+            }
+        }
+
+        // On emotion video completion: Revert smoothly back to landing video loop
+        charVideo.addEventListener('ended', revertToDefaultAnimation);
+
+        function revertToDefaultAnimation() {
+            startLandingVideo();
+        }
+
+        // ---------------- 4. Audio Player & Volume Controls ----------------
+        const secretAudio = document.getElementById('secret-audio');
+
+        function changeVolume(val) {
+            secretAudio.volume = val;
+            const volIcon = document.getElementById('volume-icon');
+            if (val == 0) {
+                volIcon.className = 'fa-solid fa-volume-xmark text-xs hover:text-brightRose transition-colors';
+            } else if (val < 0.5) {
+                volIcon.className = 'fa-solid fa-volume-low text-xs hover:text-brightRose transition-colors';
+            } else {
+                volIcon.className = 'fa-solid fa-volume-high text-xs hover:text-brightRose transition-colors';
+            }
+        }
+
+        function toggleMute() {
+            const volSlider = document.getElementById('volume-slider');
+            if (secretAudio.muted) {
+                secretAudio.muted = false;
+                volSlider.value = secretAudio.volume || 1;
+                changeVolume(volSlider.value);
+            } else {
+                secretAudio.muted = true;
+                volSlider.value = 0;
+                changeVolume(0);
+            }
+        }
+
+        function loadTrack(index, autoPlay = false) {
+            if (!playlist || playlist.length === 0) return;
+            if (index < 0) index = playlist.length - 1;
+            if (index >= playlist.length) index = 0;
+            
+            currentTrackIndex = index;
+            const track = playlist[currentTrackIndex];
+            
+            secretAudio.src = track.url;
+            document.getElementById('audio-toast-title').innerText = track.name;
+            document.getElementById('track-count-badge').innerText = `Track ${currentTrackIndex + 1} of ${playlist.length}`;
+            
+            renderPlaylistUI();
+
+            if (autoPlay) {
+                secretAudio.play().then(() => {
+                    updatePlayStateUI(true);
+                }).catch(err => console.log('Autoplay prevented:', err));
+            } else {
+                updatePlayStateUI(false);
+            }
+        }
+
+        function toggleAudio() {
+            if (secretAudio.paused) {
+                secretAudio.play().then(() => updatePlayStateUI(true)).catch(e => console.error(e));
+            } else {
+                secretAudio.pause();
+                updatePlayStateUI(false);
+            }
+        }
+
+        function updatePlayStateUI(isPlaying) {
+            const playIcon = document.getElementById('toast-play-icon');
+            const floatMusicIcon = document.getElementById('float-music-icon');
+            const discIcon = document.getElementById('music-disc-icon');
+            const waveBox = document.getElementById('soundwave-box');
+
+            if (isPlaying) {
+                if (playIcon) playIcon.className = 'fa-solid fa-pause';
+                if (floatMusicIcon) floatMusicIcon.className = 'fa-solid fa-pause';
+                if (discIcon) discIcon.classList.add('fa-spin');
+                if (waveBox) waveBox.classList.remove('wave-paused');
+            } else {
+                if (playIcon) playIcon.className = 'fa-solid fa-play ml-0.5';
+                if (floatMusicIcon) floatMusicIcon.className = 'fa-solid fa-music';
+                if (discIcon) discIcon.classList.remove('fa-spin');
+                if (waveBox) waveBox.classList.add('wave-paused');
+            }
+        }
+
+        function nextTrack() {
+            if (isShuffle && playlist.length > 1) {
+                let randomIndex = Math.floor(Math.random() * playlist.length);
+                while (randomIndex === currentTrackIndex) {
+                    randomIndex = Math.floor(Math.random() * playlist.length);
+                }
+                loadTrack(randomIndex, true);
+            } else {
+                loadTrack(currentTrackIndex + 1, true);
+            }
+        }
+
+        function prevTrack() {
+            loadTrack(currentTrackIndex - 1, true);
+        }
+
+        function seekTrack(value) {
+            if (secretAudio.duration) {
+                secretAudio.currentTime = (value / 100) * secretAudio.duration;
+            }
+        }
+
+        function toggleShuffle() {
+            isShuffle = !isShuffle;
+            const btn = document.getElementById('shuffle-btn');
+            if (isShuffle) {
+                btn.classList.add('text-brightRose');
+                btn.classList.remove('text-softPink/50');
+            } else {
+                btn.classList.remove('text-brightRose');
+                btn.classList.add('text-softPink/50');
+            }
+        }
+
+        function toggleRepeat() {
+            const btn = document.getElementById('repeat-btn');
+            if (repeatMode === 'all') {
+                repeatMode = 'one';
+                btn.classList.add('text-brightRose');
+                btn.classList.remove('text-softPink/50');
+                document.getElementById('repeat-icon').className = 'fa-solid fa-repeat-1';
+            } else if (repeatMode === 'one') {
+                repeatMode = 'none';
+                btn.classList.remove('text-brightRose');
+                btn.classList.add('text-softPink/50');
+                document.getElementById('repeat-icon').className = 'fa-solid fa-repeat';
+            } else {
+                repeatMode = 'all';
+                btn.classList.remove('text-brightRose');
+                btn.classList.add('text-softPink/50');
+                document.getElementById('repeat-icon').className = 'fa-solid fa-repeat';
+            }
+        }
+
+        function togglePlaylistDrawer() {
+            const drawer = document.getElementById('playlist-drawer');
+            drawer.classList.toggle('hidden');
+        }
+
+        function togglePlayerMinimize() {
+            isPlayerMinimized = !isPlayerMinimized;
+            const body = document.getElementById('player-collapsible-body');
+            const icon = document.getElementById('minimize-player-icon');
+            const drawer = document.getElementById('playlist-drawer');
+
+            if (isPlayerMinimized) {
+                body.classList.add('hidden');
+                drawer.classList.add('hidden');
+                icon.className = 'fa-solid fa-chevron-up';
+            } else {
+                body.classList.remove('hidden');
+                icon.className = 'fa-solid fa-chevron-down';
+            }
+        }
+
+        function renderPlaylistUI() {
+            const container = document.getElementById('playlist-items');
+            if (!container) return;
+            container.innerHTML = '';
+
+            playlist.forEach((track, idx) => {
+                const isCurrent = idx === currentTrackIndex;
+                const item = document.createElement('div');
+                item.className = `flex items-center justify-between p-2 rounded-xl text-xs cursor-pointer transition-all ${
+                    isCurrent ? 'bg-brightRose/30 text-roseGold font-semibold border border-brightRose/50' : 'hover:bg-white/5 text-softPink/80'
+                }`;
+                item.onclick = () => loadTrack(idx, true);
+                item.innerHTML = `
+                    <div class="flex items-center space-x-2 truncate">
+                        <i class="fa-solid ${isCurrent ? 'fa-music text-brightRose' : 'fa-compact-disc text-softPink/40'}"></i>
+                        <span class="truncate">${track.name}</span>
+                    </div>
+                    ${isCurrent ? '<span class="text-[9px] bg-brightRose/40 px-1.5 py-0.5 rounded text-roseGold uppercase font-mono">Playing</span>' : ''}
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        secretAudio.addEventListener('timeupdate', () => {
+            const seekBar = document.getElementById('seek-bar');
+            const currTime = document.getElementById('curr-time');
+            const durTime = document.getElementById('dur-time');
+
+            if (secretAudio.duration) {
+                const percent = (secretAudio.currentTime / secretAudio.duration) * 100;
+                if (seekBar) seekBar.value = percent;
+                if (currTime) currTime.innerText = formatTime(secretAudio.currentTime);
+                if (durTime) durTime.innerText = formatTime(secretAudio.duration);
+            }
+        });
+
+        secretAudio.addEventListener('ended', () => {
+            if (repeatMode === 'one') {
+                secretAudio.currentTime = 0;
+                secretAudio.play();
+            } else if (repeatMode === 'all' || currentTrackIndex < playlist.length - 1) {
+                nextTrack();
+            } else {
+                updatePlayStateUI(false);
+            }
+        });
+
+        function formatTime(seconds) {
+            if (isNaN(seconds)) return "0:00";
+            const min = Math.floor(seconds / 60);
+            const sec = Math.floor(seconds % 60);
+            return `${min}:${sec < 10 ? '0' : ''}${sec}`;
+        }
+
+        // Initialize Page & Start Video Autoplay
+        window.addEventListener('DOMContentLoaded', () => {
+            renderPlaylistUI();
+            loadTrack(0, false);
+            startLandingVideo();
+        });
+    </script>
+</body>
+</html>
